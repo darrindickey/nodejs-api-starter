@@ -9,7 +9,13 @@
 
 /* @flow */
 
-import { GraphQLObjectType, GraphQLList, GraphQLNonNull, GraphQLInt, GraphQLString } from 'graphql';
+import {
+  GraphQLObjectType,
+  GraphQLList,
+  GraphQLNonNull,
+  GraphQLInt,
+  GraphQLString,
+} from 'graphql';
 import { globalIdField } from 'graphql-relay';
 import { nodeInterface } from './Node';
 
@@ -46,8 +52,8 @@ const CommentType = new GraphQLObjectType({
 
     comments: {
       type: new GraphQLList(CommentType),
-      resolve(parent, args, { commentsByParent }) {
-        return commentsByParent.load(parent.id);
+      resolve(parent, args, { commentsByParentId }) {
+        return commentsByParentId.load(parent.id);
       },
     },
 

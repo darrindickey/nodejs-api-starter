@@ -1,4 +1,4 @@
-FROM node:8.1.0-alpine
+FROM node:8.3.0-alpine
 
 # Set a working directory
 WORKDIR /usr/src/app
@@ -7,6 +7,6 @@ WORKDIR /usr/src/app
 COPY . .
 
 # Install Node.js dependencies
-RUN yarn install --production --no-progress
+RUN yarn install --production --no-progress && yarn cache clean
 
 CMD [ "node", "build/server.js" ]
