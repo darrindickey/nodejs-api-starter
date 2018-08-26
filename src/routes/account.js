@@ -1,7 +1,5 @@
 /**
- * Node.js API Starter Kit (https://reactstarter.com/nodejs)
- *
- * Copyright © 2016-present Kriasoft, LLC. All rights reserved.
+ * Copyright © 2016-present Kriasoft.
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE.txt file in the root directory of this source tree.
@@ -19,12 +17,13 @@ const router = new Router();
 // External login providers. Also see src/passport.js.
 const loginProviders = [
   {
+    // https://developers.facebook.com/docs/facebook-login/permissions/
     provider: 'facebook',
-    options: { scope: ['email', 'user_location'] },
+    options: { scope: ['public_profile', 'email'] },
   },
   {
     provider: 'google',
-    options: { scope: 'profile email' },
+    options: { scope: 'profile email', accessType: 'offline' },
   },
   {
     provider: 'twitter',
@@ -67,10 +66,11 @@ function getSuccessRedirect(req) {
   const url = req.query.return || req.body.return || '/';
   if (!isValidReturnURL(url)) return '/';
   if (!getOrigin(url)) return url;
-  return `${url}${url.includes('?') ? '&' : '?'}sessionID=${req.cookies
-    .sid}${req.session.cookie.originalMaxAge
-    ? `&maxAge=${req.session.cookie.originalMaxAge}`
-    : ''}`;
+  return `${url}${url.includes('?') ? '&' : '?'}sessionID=${req.cookies.sid}${
+    req.session.cookie.originalMaxAge
+      ? `&maxAge=${req.session.cookie.originalMaxAge}`
+      : ''
+  }`;
 }
 
 // Registers route handlers for the external login providers
@@ -81,7 +81,11 @@ loginProviders.forEach(({ provider, options }) => {
       req.session.returnTo = getSuccessRedirect(req);
       next();
     },
-    passport.authenticate(provider, { failureFlash: true, ...options }),
+    passport.authenticate(provider, {
+      failureFlash: true,
+      prompt: 'select_account',
+      ...options,
+    }),
   );
 
   router.get(`/login/${provider}/return`, (req, res, next) =>

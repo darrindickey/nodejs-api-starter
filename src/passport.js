@@ -1,7 +1,5 @@
 /**
- * Node.js API Starter Kit (https://reactstarter.com/nodejs)
- *
- * Copyright © 2016-present Kriasoft, LLC. All rights reserved.
+ * Copyright © 2016-present Kriasoft.
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE.txt file in the root directory of this source tree.
@@ -11,7 +9,7 @@
 /* eslint-disable no-param-reassign, no-underscore-dangle, max-len */
 
 import passport from 'passport';
-import { OAuth2Strategy as GoogleStrategy } from 'passport-google-oauth';
+import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { Strategy as FacebookStrategy } from 'passport-facebook';
 import { Strategy as TwitterStrategy } from 'passport-twitter';
 
@@ -22,7 +20,6 @@ passport.serializeUser((user, done) => {
     id: user.id,
     displayName: user.displayName,
     imageUrl: user.imageUrl,
-    emails: user.emails,
   });
 });
 
@@ -36,7 +33,10 @@ async function login(req, provider, profile, tokens) {
   let user;
 
   if (req.user) {
-    user = await db.table('users').where({ id: req.user.id }).first();
+    user = await db
+      .table('users')
+      .where({ id: req.user.id })
+      .first();
   }
 
   if (!user) {
@@ -53,32 +53,36 @@ async function login(req, provider, profile, tokens) {
     ) {
       user = await db
         .table('users')
-        .where(
-          'emails',
-          '@>',
-          JSON.stringify([{ email: profile.emails[0].value, verified: true }]),
-        )
-        .first();
+        .innerJoin('emails', 'emails.user_id', 'users.id')
+        .where({
+          'emails.email': profile.emails[0].value,
+          'emails.verified': true,
+        })
+        .first('users.*');
     }
   }
 
   if (!user) {
-    user = (await db
+    [user] = await db
       .table('users')
       .insert({
         display_name: profile.displayName,
-        emails: JSON.stringify(
-          (profile.emails || []).map(x => ({
-            email: x.value,
-            verified: x.verified || false,
-          })),
-        ),
         image_url:
           profile.photos && profile.photos.length
             ? profile.photos[0].value
             : null,
       })
-      .returning('*'))[0];
+      .returning('*');
+
+    if (profile.emails && profile.emails.length) {
+      await db.table('emails').insert(
+        profile.emails.map(x => ({
+          user_id: user && user.id,
+          email: x.value,
+          verified: x.verified || false,
+        })),
+      );
+    }
   }
 
   const loginKeys = { user_id: user.id, provider, id: profile.id };
@@ -96,19 +100,21 @@ async function login(req, provider, profile, tokens) {
       profile: JSON.stringify(profile._json),
     });
   } else {
-    await db.table('logins').where(loginKeys).update({
-      username: profile.username,
-      tokens: JSON.stringify(tokens),
-      profile: JSON.stringify(profile._json),
-      updated_at: db.raw('CURRENT_TIMESTAMP'),
-    });
+    await db
+      .table('logins')
+      .where(loginKeys)
+      .update({
+        username: profile.username,
+        tokens: JSON.stringify(tokens),
+        profile: JSON.stringify(profile._json),
+        updated_at: db.raw('CURRENT_TIMESTAMP'),
+      });
   }
 
   return {
     id: user.id,
     displayName: user.display_name,
     imageUrl: user.image_url,
-    emails: user.emails,
   };
 }
 
@@ -136,19 +142,25 @@ passport.use(
 );
 
 // https://github.com/jaredhanson/passport-facebook
+// https://developers.facebook.com/docs/facebook-login/permissions/
 passport.use(
   new FacebookStrategy(
     {
       clientID: process.env.FACEBOOK_ID,
       clientSecret: process.env.FACEBOOK_SECRET,
       profileFields: [
+        'id',
+        'cover',
         'name',
-        'email',
-        'picture',
+        'age_range',
         'link',
+        'gender',
         'locale',
+        'picture',
         'timezone',
+        'updated_time',
         'verified',
+        'email',
       ],
       callbackURL: '/login/facebook/return',
       passReqToCallback: true,

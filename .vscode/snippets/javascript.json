@@ -3,9 +3,7 @@
     "prefix": "type",
     "body": [
       "/**",
-      " * Node.js API Starter Kit (https://reactstarter.com/nodejs)",
-      " *",
-      " * Copyright © 2016-present Kriasoft, LLC. All rights reserved.",
+      " * Copyright © 2016-present Kriasoft.",
       " *",
       " * This source code is licensed under the MIT license found in the",
       " * LICENSE.txt file in the root directory of this source tree.",
@@ -38,5 +36,19 @@
       "},"
     ],
     "description": "GraphQL Field"
+  },
+  "Test": {
+    "prefix": "test",
+    "body": [
+      "/* eslint-env jest */",
+      "",
+      "describe('${1:namespace}', () => {",
+      "  test('${2:test}', () => {",
+      "    expect(${3:expect})$0;",
+      "  });",
+      "});",
+      ""
+    ],
+    "description": "Test Script"
   }
 }
