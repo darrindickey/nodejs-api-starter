@@ -1,8 +1,6 @@
 #!/usr/bin/env node
 /**
- * Node.js API Starter Kit (https://reactstarter.com/nodejs)
- *
- * Copyright © 2016-present Kriasoft, LLC. All rights reserved.
+ * Copyright © 2016-present Kriasoft.
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE.txt file in the root directory of this source tree.
@@ -10,7 +8,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const rimraf = require('rimraf');
+const del = require('del');
 const babel = require('babel-core');
 const chokidar = require('chokidar');
 const handlebars = require('handlebars');
@@ -50,7 +48,7 @@ module.exports = task(
       let ready = false;
 
       // Clean up the output directory
-      rimraf.sync('build/*', { nosort: true, dot: true });
+      del.sync(['build/**', '!build'], { dot: true });
 
       let watcher = chokidar.watch([
         'locales',
@@ -65,8 +63,13 @@ module.exports = task(
           return;
         }
 
-        // Skip files starting with a dot, e.g. .DS_Store, .eslintrc etc.
-        if (path.basename(src)[0] === '.') return;
+        if (
+          path.basename(src)[0] === '.' ||
+          src.includes('__tests__') ||
+          src.endsWith('.test.js')
+        ) {
+          return;
+        }
 
         // Get destination file name, e.g. src/app.js (src) -> build/app.js (dest)
         const dest = src.startsWith('src')

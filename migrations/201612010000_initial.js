@@ -1,7 +1,5 @@
 /**
- * Node.js API Starter Kit (https://reactstarter.com/nodejs)
- *
- * Copyright © 2016-present Kriasoft, LLC. All rights reserved.
+ * Copyright © 2016-present Kriasoft.
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE.txt file in the root directory of this source tree.
@@ -9,6 +7,7 @@
 
 // Create database schema for storing user accounts, logins and authentication claims/tokens
 // Source https://github.com/membership/membership.db
+// prettier-ignore
 module.exports.up = async db => {
   // User accounts
   await db.schema.createTable('users', table => {
@@ -18,8 +17,19 @@ module.exports.up = async db => {
     table.uuid('id').notNullable().defaultTo(db.raw('uuid_generate_v1mc()')).primary();
     table.string('display_name', 100);
     table.string('image_url', 200);
-    table.jsonb('emails').notNullable().defaultTo('[]');
+    table.string('password_hash', 128);
     table.timestamps(false, true);
+  });
+
+  // Users' email addresses
+  await db.schema.createTable('emails', table => {
+    table.uuid('id').notNullable().defaultTo(db.raw('uuid_generate_v1mc()')).primary();
+    table.uuid('user_id').notNullable().references('id').inTable('users').onDelete('CASCADE').onUpdate('CASCADE');
+    table.string('email', 100).notNullable();
+    table.boolean('verified').notNullable().defaultTo(false);
+    table.boolean('primary').notNullable().defaultTo(false);
+    table.timestamps(false, true);
+    table.unique(['user_id', 'email', 'verified']);
   });
 
   // External logins with security tokens (e.g. Google, Facebook, Twitter)
@@ -71,6 +81,7 @@ module.exports.down = async db => {
   await db.schema.dropTableIfExists('story_points');
   await db.schema.dropTableIfExists('stories');
   await db.schema.dropTableIfExists('logins');
+  await db.schema.dropTableIfExists('emails');
   await db.schema.dropTableIfExists('users');
 };
 

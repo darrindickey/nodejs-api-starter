@@ -1,8 +1,6 @@
 #!/usr/bin/env node
 /**
- * Node.js API Starter Kit (https://reactstarter.com/nodejs)
- *
- * Copyright © 2016-present Kriasoft, LLC. All rights reserved.
+ * Copyright © 2016-present Kriasoft.
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE.txt file in the root directory of this source tree.
@@ -25,7 +23,10 @@ const config = {
 };
 
 // The template for database migration files (see templates/*.js)
-const version = new Date().toISOString().substr(0, 16).replace(/\D/g, '');
+const version = new Date()
+  .toISOString()
+  .substr(0, 16)
+  .replace(/\D/g, '');
 const template = `module.exports.up = async (db) => {\n  \n};\n
 module.exports.down = async (db) => {\n  \n};\n
 module.exports.configuration = { transaction: true };\n`;

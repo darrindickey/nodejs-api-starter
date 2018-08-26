@@ -1,7 +1,5 @@
 /**
- * Node.js API Starter Kit (https://reactstarter.com/nodejs)
- *
- * Copyright © 2016-present Kriasoft, LLC. All rights reserved.
+ * Copyright © 2016-present Kriasoft.
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE.txt file in the root directory of this source tree.
@@ -13,6 +11,7 @@
 import app from './app';
 import db from './db';
 import redis from './redis';
+import errors from './errors';
 
 const port = process.env.PORT || 8080;
 const host = process.env.HOSTNAME || '0.0.0.0';
@@ -36,7 +35,7 @@ function handleExit(options, err) {
       }
     });
   }
-  if (err) console.log(err.stack);
+  if (err) errors.report(err);
   if (options.exit) process.exit();
 }
 

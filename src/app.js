@@ -1,7 +1,5 @@
 /**
- * Node.js API Starter Kit (https://reactstarter.com/nodejs)
- *
- * Copyright © 2016-present Kriasoft, LLC. All rights reserved.
+ * Copyright © 2016-present Kriasoft.
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE.txt file in the root directory of this source tree.
@@ -26,25 +24,33 @@ import i18nextBackend from 'i18next-node-fs-backend';
 import expressGraphQL from 'express-graphql';
 import PrettyError from 'pretty-error';
 import { printSchema } from 'graphql';
+
 import email from './email';
 import redis from './redis';
 import passport from './passport';
-import schema from './schema';
-import DataLoaders from './DataLoaders';
 import accountRoutes from './routes/account';
+import schema from './schema';
+import Context from './Context';
+import errors from './errors';
 
-i18next.use(LanguageDetector).use(i18nextBackend).init({
-  preload: ['en', 'de'],
-  ns: ['common', 'email'],
-  fallbackNS: 'common',
-  detection: {
-    lookupCookie: 'lng',
-  },
-  backend: {
-    loadPath: path.resolve(__dirname, '../locales/{{lng}}/{{ns}}.json'),
-    addPath: path.resolve(__dirname, '../locales/{{lng}}/{{ns}}.missing.json'),
-  },
-});
+i18next
+  .use(LanguageDetector)
+  .use(i18nextBackend)
+  .init({
+    preload: ['en', 'de'],
+    ns: ['common', 'email'],
+    fallbackNS: 'common',
+    detection: {
+      lookupCookie: 'lng',
+    },
+    backend: {
+      loadPath: path.resolve(__dirname, '../locales/{{lng}}/{{ns}}.json'),
+      addPath: path.resolve(
+        __dirname,
+        '../locales/{{lng}}/{{ns}}.missing.json',
+      ),
+    },
+  });
 
 const app = express();
 
@@ -118,19 +124,19 @@ app.use(
   '/graphql',
   expressGraphQL(req => ({
     schema,
-    context: {
-      t: req.t,
-      user: req.user,
-      ...DataLoaders.create(),
-    },
+    context: new Context(req),
     graphiql: process.env.NODE_ENV !== 'production',
     pretty: process.env.NODE_ENV !== 'production',
-    formatError: error => ({
-      message: error.message,
-      state: error.originalError && error.originalError.state,
-      locations: error.locations,
-      path: error.path,
-    }),
+    formatError: (error: any) => {
+      errors.report(error.originalError || error);
+      return {
+        message: error.message,
+        code: error.originalError && error.originalError.code,
+        state: error.originalError && error.originalError.state,
+        locations: error.locations,
+        path: error.path,
+      };
+    },
   })),
 );
 
