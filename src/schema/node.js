@@ -25,6 +25,10 @@ export const { nodeInterface, nodeField, nodesField } = nodeDefinitions(
         return context.storyById.load(id).then(assignType('Story'));
       case 'Comment':
         return context.commentById.load(id).then(assignType('Comment'));
+      case 'Wine':
+        return context.wineById.load(id).then(assignType('Wine'));
+      case 'Winery':
+        return context.wineryById.load(id).then(assignType('Winery'));
       default:
         return null;
     }
@@ -39,6 +43,10 @@ export const { nodeInterface, nodeField, nodesField } = nodeDefinitions(
         return require('./story/StoryType').default;
       case 'Comment':
         return require('./comment/CommentType').default;
+      case 'Wine':
+        return require('./wine/WineType').default;
+      case 'Winery':
+        return require('./winery/WineryType').default;
       default:
         return null;
     }

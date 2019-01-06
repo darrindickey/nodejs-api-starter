@@ -9,15 +9,38 @@
 // Source https://github.com/membership/membership.db
 // prettier-ignore
 module.exports.up = async db => {
+  await db.schema.createTable('roles', table => {
+    table.uuid('id').notNullable().defaultTo(db.raw('uuid_generate_v1mc()')).primary();
+    table.string('role', 100);
+    table.timestamps(false, true);
+  });
+
   // User accounts
   await db.schema.createTable('users', table => {
     // UUID v1mc reduces the negative side effect of using random primary keys
     // with respect to keyspace fragmentation on disk for the tables because it's time based
     // https://www.postgresql.org/docs/current/static/uuid-ossp.html
     table.uuid('id').notNullable().defaultTo(db.raw('uuid_generate_v1mc()')).primary();
+    table.uuid('role_id').notNullable().references('id').inTable('roles').onDelete('CASCADE').onUpdate('CASCADE');
     table.string('display_name', 100);
     table.string('image_url', 200);
     table.string('password_hash', 128);
+    table.string('forgot_password_token');
+    table.timestamp('password_token_expiration');
+    table.string('user_role', 100);
+    table.string('first_name', 100);
+    table.string('last_name', 100);
+    table.string('username', 100);
+    table.string('phone_number', 100);
+    table.string('location_city', 100);
+    table.string('location_state', 100);
+    table.string('location_zipcode', 100);
+    table.string('sex', 5);
+    table.string('social_facebook', 100);
+    table.string('social_twitter', 100);
+    table.string('social_instagram', 100);
+    table.string('social_foursquare', 100);
+    table.string('social_google_plus', 100);
     table.timestamps(false, true);
   });
 
@@ -83,6 +106,9 @@ module.exports.down = async db => {
   await db.schema.dropTableIfExists('logins');
   await db.schema.dropTableIfExists('emails');
   await db.schema.dropTableIfExists('users');
+  await db.schema.dropTableIfExists('roles');
 };
 
-module.exports.configuration = { transaction: true };
+module.exports.configuration = {
+  transaction: true,
+};

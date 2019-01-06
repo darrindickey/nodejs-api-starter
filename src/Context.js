@@ -125,6 +125,22 @@ class Context {
       .then(mapToValues(keys, x => x.id, x => x.count)),
   );
 
+  wineById = new DataLoader(keys =>
+    db
+      .table('wines')
+      .whereIn('id', keys)
+      .select()
+      .then(mapTo(keys, x => x.id)),
+  );
+
+  wineryById = new DataLoader(keys =>
+    db
+      .table('winery')
+      .whereIn('id', keys)
+      .select()
+      .then(mapTo(keys, x => x.id)),
+  );
+
   /*
    * Authenticatinon and permissions.
    */

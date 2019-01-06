@@ -12,7 +12,11 @@ import { GraphQLSchema, GraphQLObjectType } from 'graphql';
 import userQueries from './user/queries';
 import storyQueries from './story/queries';
 import storyMutations from './story/mutations';
+import wineMutations from './wine/mutations';
+import wineryMutations from './winery/mutations';
 import commentMutations from './comment/mutations';
+import wineQueries from './wine/queries';
+import wineryQueries from './winery/queries';
 import { nodeField, nodesField } from './node';
 
 export default new GraphQLSchema({
@@ -23,6 +27,8 @@ export default new GraphQLSchema({
       nodes: nodesField,
       ...userQueries,
       ...storyQueries,
+      ...wineQueries,
+      ...wineryQueries,
     },
   }),
   mutation: new GraphQLObjectType({
@@ -30,6 +36,8 @@ export default new GraphQLSchema({
     fields: {
       ...storyMutations,
       ...commentMutations,
+      ...wineMutations,
+      ...wineryMutations,
     },
   }),
 });
